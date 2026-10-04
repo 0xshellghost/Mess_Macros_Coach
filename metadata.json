@@ -1,0 +1,8 @@
+{
+  "name": "Mess Macro Coach",
+  "description": "Hostel mess nutrition coach that parses messy mess menus, deterministically calculates IFCT/USDA protein & macros, flags unverified foods, and suggests cheap canteen add-ons with a 3-day before/after tracker.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
