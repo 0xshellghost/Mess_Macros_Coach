@@ -28,7 +28,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveProfile({
-      friendName: friendName.trim() || 'Rohan',
+      friendName: friendName.trim() || 'Jatin',
       weightKg: Number(weightKg) || 70,
       dietPreference,
       proteinTargetPerKg: proteinMultiplier,
@@ -66,7 +66,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 type="text"
                 value={friendName}
                 onChange={(e) => setFriendName(e.target.value)}
-                placeholder="Rohan"
+                placeholder="Jatin"
                 className="w-full rounded-xl border border-[#CCE0CB] bg-[#F8FAF7] px-3.5 py-2 text-[#0E3E1E] focus:outline-none focus:border-[#0E3E1E]"
                 required
               />

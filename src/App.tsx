@@ -16,7 +16,7 @@ import { buildDayPlan } from './data/nutritionEngine';
 import { getStoredItem, setStoredItem } from './utils/storage';
 
 const DEFAULT_PROFILE: UserProfile = {
-  friendName: 'Rohan',
+  friendName: 'Jatin',
   weightKg: 72,
   dietPreference: 'eggetarian',
   proteinTargetPerKg: 2.0,
@@ -66,7 +66,11 @@ const INITIAL_WEEKLY_PLANS: DayPlan[] = [
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    return getStoredItem<UserProfile>('mess_macro_profile', DEFAULT_PROFILE);
+    const saved = getStoredItem<UserProfile>('mess_macro_profile', DEFAULT_PROFILE);
+    if (saved && (saved.friendName === 'Rohan' || !saved.friendName)) {
+      return { ...saved, friendName: 'Jatin' };
+    }
+    return saved;
   });
 
   const [activeTab, setActiveTab] = useState<'menu' | 'tracker' | 'library'>('menu');
@@ -228,7 +232,7 @@ Dinner: ${activePlan.meals.dinner.items.map((i) => i.name).join(', ') || 'None'}
         gymBroTips: [
           'Mess Dal Truth: 1 katori of mess dal is mostly water and only has ~4g protein.',
           'Soya Chunks are the #1 student budget hack: 52g protein per 100g dry weight at ₹20.',
-          'Drink at least 3-4 liters of water to support nitrogen clearance.',
+          'Drink at least 3-4 liters of water daily to support digestion and kidney filtration in hostel heat.',
         ],
         mythBuster: 'Myth: "Mess dal has 20g protein." Reality: 2 watery dals (~8g) + 4 rotis (~11g) = ~19g total with ~90g carbs.',
       });

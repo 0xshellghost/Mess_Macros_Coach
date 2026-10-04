@@ -168,16 +168,27 @@ export function recalculateItemNutrition(item: LoggedFoodItem, newMultiplier: nu
  * Sums up nutritional values for a list of items.
  */
 export function sumNutrition(items: LoggedFoodItem[]): NutritionalInfo {
-  return items.reduce(
-    (acc, curr) => ({
-      calories: acc.calories + curr.nutrition.calories,
-      protein: Math.round((acc.protein + curr.nutrition.protein) * 10) / 10,
-      carbs: Math.round((acc.carbs + curr.nutrition.carbs) * 10) / 10,
-      fat: Math.round((acc.fat + curr.nutrition.fat) * 10) / 10,
-      fiber: Math.round(((acc.fiber || 0) + (curr.nutrition.fiber || 0)) * 10) / 10,
-    }),
-    { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
-  );
+  let cal = 0;
+  let pro = 0;
+  let carb = 0;
+  let fat = 0;
+  let fib = 0;
+
+  for (const item of items) {
+    cal += item.nutrition.calories || 0;
+    pro += item.nutrition.protein || 0;
+    carb += item.nutrition.carbs || 0;
+    fat += item.nutrition.fat || 0;
+    fib += item.nutrition.fiber || 0;
+  }
+
+  return {
+    calories: Math.round(cal),
+    protein: Math.round(pro * 10) / 10,
+    carbs: Math.round(carb * 10) / 10,
+    fat: Math.round(fat * 10) / 10,
+    fiber: Math.round(fib * 10) / 10,
+  };
 }
 
 /**
@@ -236,17 +247,17 @@ export function calculateProteinAssessment(currentProtein: number, targetProtein
   const deficit = Math.max(0, Math.round((targetProtein - currentProtein) * 10) / 10);
   const percentage = Math.min(200, Math.round((currentProtein / targetProtein) * 100));
 
-  let statusText = 'Severe Deficit';
+  let statusText = 'High Deficit';
   let badgeColor = 'bg-red-500/20 text-red-300 border-red-500/40';
 
   if (percentage >= 100) {
-    statusText = 'Target Achieved (Anabolic Zone)';
+    statusText = 'Target Met';
     badgeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
   } else if (percentage >= 80) {
-    statusText = 'Close to Target (Small Gap)';
+    statusText = 'Close to Target';
     badgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
   } else if (percentage >= 50) {
-    statusText = 'Moderate Deficit (Muscle Loss Risk)';
+    statusText = 'Moderate Deficit';
     badgeColor = 'bg-orange-500/20 text-orange-300 border-orange-500/40';
   }
 

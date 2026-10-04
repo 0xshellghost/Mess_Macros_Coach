@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   BarChart3, 
   Share2, 
-  Check
+  Check,
+  Info
 } from 'lucide-react';
 import { UserProfile, BeforeAfterExperiment, DayProteinLog } from '../types';
 
@@ -12,6 +13,12 @@ interface ThreeDayTrackerProps {
   onUpdateExperiment: (exp: BeforeAfterExperiment) => void;
 }
 
+const round1 = (val: number): number => Math.round(val * 10) / 10;
+const format1 = (val: number): string => {
+  const r = Math.round(val * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toFixed(1);
+};
+
 export const ThreeDayTracker: React.FC<ThreeDayTrackerProps> = ({ 
   profile,
   experiment,
@@ -20,14 +27,14 @@ export const ThreeDayTracker: React.FC<ThreeDayTrackerProps> = ({
   const [activeTab, setActiveTab] = useState<'comparison' | 'log_inputs'>('comparison');
   const [copied, setCopied] = useState(false);
 
-  const beforeAvgProtein = Math.round(
+  const beforeAvgProtein = round1(
     experiment.beforeDays.reduce((acc, d) => acc + d.proteinGrams, 0) / 3
   );
-  const afterAvgProtein = Math.round(
+  const afterAvgProtein = round1(
     experiment.afterDays.reduce((acc, d) => acc + d.proteinGrams, 0) / 3
   );
 
-  const proteinGain = afterAvgProtein - beforeAvgProtein;
+  const proteinGain = round1(afterAvgProtein - beforeAvgProtein);
   const percentageIncrease = Math.round((proteinGain / (beforeAvgProtein || 1)) * 100);
 
   const beforeTargetHit = Math.round((beforeAvgProtein / experiment.targetProtein) * 100);
@@ -37,41 +44,42 @@ export const ThreeDayTracker: React.FC<ThreeDayTrackerProps> = ({
     experiment.afterDays.reduce((acc, d) => acc + (d.addonCostInr || 0), 0) / 3
   );
 
-  const costPerExtraGram = Math.round((avgDailyAddonCost / (proteinGain || 1)) * 100) / 100;
+  const costPerExtraGram = round1(avgDailyAddonCost / (proteinGain || 1));
 
   const handleUpdateBeforeDay = (index: number, grams: number, notes: string) => {
     const updated = [...experiment.beforeDays] as [DayProteinLog, DayProteinLog, DayProteinLog];
-    updated[index] = { ...updated[index], proteinGrams: grams, notes };
+    updated[index] = { ...updated[index], proteinGrams: round1(grams), notes };
     onUpdateExperiment({ ...experiment, beforeDays: updated });
   };
 
   const handleUpdateAfterDay = (index: number, grams: number, cost: number, notes: string) => {
     const updated = [...experiment.afterDays] as [DayProteinLog, DayProteinLog, DayProteinLog];
-    updated[index] = { ...updated[index], proteinGrams: grams, addonCostInr: cost, notes };
+    updated[index] = { ...updated[index], proteinGrams: round1(grams), addonCostInr: cost, notes };
     onUpdateExperiment({ ...experiment, afterDays: updated });
   };
 
   const handleCopyReport = () => {
     const textReport = `MESS MACRO COACH: 3-DAY IMPACT REPORT
 Lifter: ${experiment.friendName} (${profile.weightKg}kg)
-Daily Protein Target: ${experiment.targetProtein}g
+Daily Target: ${experiment.targetProtein}g protein
+Data Note: Baseline = Measured from mess menu | Post-Coach = Projected intervention with canteen add-ons
 
-BEFORE COACH (Baseline Mess Food):
-• Day 1: ${experiment.beforeDays[0].proteinGrams}g
-• Day 2: ${experiment.beforeDays[1].proteinGrams}g
-• Day 3: ${experiment.beforeDays[2].proteinGrams}g
-3-Day Baseline Average: ${beforeAvgProtein}g/day (${beforeTargetHit}% of target)
+BEFORE COACH (Measured Mess Baseline):
+• Day 1: ${format1(experiment.beforeDays[0].proteinGrams)}g
+• Day 2: ${format1(experiment.beforeDays[1].proteinGrams)}g
+• Day 3: ${format1(experiment.beforeDays[2].proteinGrams)}g
+Baseline Average: ${format1(beforeAvgProtein)}g/day (${beforeTargetHit}% of target)
 
-AFTER COACH (With Canteen Hacks):
-• Day 1: ${experiment.afterDays[0].proteinGrams}g (+${experiment.afterDays[0].proteinGrams - experiment.beforeDays[0].proteinGrams}g)
-• Day 2: ${experiment.afterDays[1].proteinGrams}g (+${experiment.afterDays[1].proteinGrams - experiment.beforeDays[1].proteinGrams}g)
-• Day 3: ${experiment.afterDays[2].proteinGrams}g (+${experiment.afterDays[2].proteinGrams - experiment.beforeDays[2].proteinGrams}g)
-3-Day Optimized Average: ${afterAvgProtein}g/day (${afterTargetHit}% of target)
+AFTER COACH (Projected with Canteen Hacks):
+• Day 1: ${format1(experiment.afterDays[0].proteinGrams)}g (+${format1(experiment.afterDays[0].proteinGrams - experiment.beforeDays[0].proteinGrams)}g)
+• Day 2: ${format1(experiment.afterDays[1].proteinGrams)}g (+${format1(experiment.afterDays[1].proteinGrams - experiment.beforeDays[1].proteinGrams)}g)
+• Day 3: ${format1(experiment.afterDays[2].proteinGrams)}g (+${format1(experiment.afterDays[2].proteinGrams - experiment.beforeDays[2].proteinGrams)}g)
+Intervention Average: ${format1(afterAvgProtein)}g/day (${afterTargetHit}% of target)
 
-MEASURABLE OUTCOMES:
-Protein Increase: +${proteinGain}g/day (+${percentageIncrease}%)
-Avg Daily Canteen Spend: ~₹${avgDailyAddonCost}/day (₹${costPerExtraGram}/extra g)
-Verdict: Deficit resolved with budget college canteen add-ons.`;
+OUTCOMES:
+Protein Gain: +${format1(proteinGain)}g/day (+${percentageIncrease}%)
+Avg Canteen Spend: ~₹${avgDailyAddonCost}/day (₹${format1(costPerExtraGram)} per extra gram)
+Status: ${afterAvgProtein >= experiment.targetProtein ? 'Target Met' : `${format1(experiment.targetProtein - afterAvgProtein)}g remaining deficit`}`;
 
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(textReport).catch(() => {});
@@ -89,7 +97,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
             3-Day Before vs. After Impact Tracker
           </h2>
           <p className="text-xs text-[#527056] mt-0.5">
-            Measurable reporting: Log 3 days of baseline mess food, then log 3 days with canteen hacks applied.
+            Measured hostel mess food baseline compared against projected canteen add-ons.
           </p>
         </div>
 
@@ -136,20 +144,30 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
         </div>
       </div>
 
+      {/* Honest Scientific Transparency Banner */}
+      <div className="rounded-xl border border-[#D2E2CF] bg-[#F5F9F4] p-3 text-xs text-[#527056] flex items-start gap-2.5">
+        <Info className="h-4 w-4 text-[#0E3E1E] shrink-0 mt-0.5" />
+        <div>
+          <strong className="text-[#0E3E1E]">Data Transparency:</strong> Baseline days are measured directly from the mess menu using IFCT 2017 values. Post-coach days represent <strong>projected results</strong> based on realistic campus add-ons (2 boiled eggs ₹14, kettle soya chunks ₹10, Amul protein lassi ₹25). Edit values under "Edit Logs" as real meals are eaten.
+        </div>
+      </div>
+
       {activeTab === 'comparison' ? (
         <div className="space-y-6">
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Key Metric Blocks */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="rounded-xl border border-[#D2E2CF] bg-[#F8FAF7] p-4">
               <div className="text-[11px] font-bold text-[#527056] uppercase tracking-wider">
-                Daily Protein Increase
+                Protein Intake Delta
               </div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-3xl font-black text-[#0E3E1E]">+{proteinGain}g</span>
-                <span className="text-xs font-bold text-[#2E7D32]">+{percentageIncrease}%</span>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-3xl font-black text-[#2E7D32]">
+                  +{format1(proteinGain)}g
+                </span>
+                <span className="text-xs text-[#527056] font-bold">/ day</span>
               </div>
               <p className="text-xs text-[#527056] mt-1 font-medium">
-                {beforeAvgProtein}g &rarr; {afterAvgProtein}g daily average
+                {format1(beforeAvgProtein)}g &rarr; {format1(afterAvgProtein)}g (+{percentageIncrease}%)
               </p>
             </div>
 
@@ -162,7 +180,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                 <span className="text-xs text-[#7A987E] line-through">{beforeTargetHit}%</span>
               </div>
               <p className="text-xs text-[#527056] mt-1 font-medium">
-                Goal: {experiment.targetProtein}g / day
+                Target: {experiment.targetProtein}g / day
               </p>
             </div>
 
@@ -175,19 +193,19 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                 <span className="text-xs text-[#527056] font-medium">/ day</span>
               </div>
               <p className="text-xs text-[#527056] mt-1 font-medium">
-                ₹{costPerExtraGram} per extra gram of protein
+                ₹{format1(costPerExtraGram)} per extra gram of protein
               </p>
             </div>
 
             <div className="rounded-xl border border-[#D2E2CF] bg-[#F8FAF7] p-4">
               <div className="text-[11px] font-bold text-[#527056] uppercase tracking-wider">
-                Anabolic Status
+                Target Status
               </div>
               <div className="mt-2 text-sm font-bold text-[#2E7D32]">
-                Optimal Hypertrophy
+                {afterAvgProtein >= experiment.targetProtein ? 'Target Met' : `${format1(experiment.targetProtein - afterAvgProtein)}g Deficit`}
               </div>
               <p className="text-xs text-[#527056] mt-1 font-medium">
-                Before: Catabolic Deficit
+                Baseline Deficit: {format1(Math.max(0, experiment.targetProtein - beforeAvgProtein))}g / day
               </p>
             </div>
           </div>
@@ -199,8 +217,8 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                 Day-by-Day Intake (g Protein)
               </h3>
               <div className="flex items-center gap-4 text-xs">
-                <span className="text-[#7A987E] font-medium">Before Coach</span>
-                <span className="text-[#0E3E1E] font-bold">After Coach</span>
+                <span className="text-[#7A987E] font-medium">Baseline (Mess)</span>
+                <span className="text-[#0E3E1E] font-bold">Projected (With Canteen)</span>
               </div>
             </div>
 
@@ -208,7 +226,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
               {[0, 1, 2].map((idx) => {
                 const before = experiment.beforeDays[idx];
                 const after = experiment.afterDays[idx];
-                const diff = after.proteinGrams - before.proteinGrams;
+                const diff = round1(after.proteinGrams - before.proteinGrams);
 
                 const beforeWidth = Math.min(100, Math.round((before.proteinGrams / experiment.targetProtein) * 100));
                 const afterWidth = Math.min(100, Math.round((after.proteinGrams / experiment.targetProtein) * 100));
@@ -218,25 +236,25 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                     <div className="flex justify-between text-xs mb-1.5">
                       <span className="font-bold text-[#0E3E1E]">Day 0{idx + 1}</span>
                       <span className="text-xs text-[#2E7D32] font-bold">
-                        +{diff}g gained (₹{after.addonCostInr} spend)
+                        +{format1(diff)}g gained (₹{after.addonCostInr} spend)
                       </span>
                     </div>
 
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="w-14 text-[#7A987E] text-[11px] font-medium">Before</span>
+                        <span className="w-16 text-[#7A987E] text-[11px] font-medium">Baseline</span>
                         <div className="flex-1 h-2.5 bg-[#E5EEE3] rounded-full overflow-hidden">
                           <div className="h-full bg-[#A3B8A5] rounded-full" style={{ width: `${beforeWidth}%` }} />
                         </div>
-                        <span className="w-10 text-right text-[#527056] font-mono text-xs">{before.proteinGrams}g</span>
+                        <span className="w-12 text-right text-[#527056] font-mono text-xs">{format1(before.proteinGrams)}g</span>
                       </div>
 
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="w-14 text-[#0E3E1E] text-[11px] font-bold">After</span>
+                        <span className="w-16 text-[#0E3E1E] text-[11px] font-bold">Projected</span>
                         <div className="flex-1 h-2.5 bg-[#E5EEE3] rounded-full overflow-hidden">
                           <div className="h-full bg-[#0E3E1E] rounded-full" style={{ width: `${afterWidth}%` }} />
                         </div>
-                        <span className="w-10 text-right text-[#0E3E1E] font-mono text-xs font-bold">{after.proteinGrams}g</span>
+                        <span className="w-12 text-right text-[#0E3E1E] font-mono text-xs font-bold">{format1(after.proteinGrams)}g</span>
                       </div>
                     </div>
                   </div>
@@ -245,7 +263,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
             </div>
           </div>
 
-          {/* Clean Data Table */}
+          {/* Details Table */}
           <div className="overflow-x-auto rounded-xl border border-[#D2E2CF]">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#DFECDD] text-[#0E3E1E] border-b border-[#D0E2CE]">
@@ -253,7 +271,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                   <th className="py-2.5 px-4 font-bold">Day</th>
                   <th className="py-2.5 px-4 font-bold">Baseline Mess Diet</th>
                   <th className="py-2.5 px-4 font-bold">Baseline</th>
-                  <th className="py-2.5 px-4 font-bold">Optimized With Hacks</th>
+                  <th className="py-2.5 px-4 font-bold">Canteen Add-ons (Projected)</th>
                   <th className="py-2.5 px-4 font-bold">Optimized</th>
                   <th className="py-2.5 px-4 font-bold">Cost</th>
                   <th className="py-2.5 px-4 font-bold">Net Delta</th>
@@ -262,16 +280,17 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
               <tbody className="divide-y divide-[#E3EDE1] bg-white text-[#3C5740]">
                 {experiment.beforeDays.map((before, i) => {
                   const after = experiment.afterDays[i];
+                  const diff = round1(after.proteinGrams - before.proteinGrams);
                   return (
                     <tr key={i} className="hover:bg-[#F4F8F3]">
                       <td className="py-2.5 px-4 font-bold text-[#0E3E1E]">Day {i + 1}</td>
                       <td className="py-2.5 px-4 text-[#527056] max-w-[160px] truncate">{before.notes}</td>
-                      <td className="py-2.5 px-4 text-[#527056] font-mono">{before.proteinGrams}g</td>
+                      <td className="py-2.5 px-4 text-[#527056] font-mono">{format1(before.proteinGrams)}g</td>
                       <td className="py-2.5 px-4 text-[#0E3E1E] font-medium max-w-[200px] truncate">{after.notes}</td>
-                      <td className="py-2.5 px-4 font-bold text-[#0E3E1E] font-mono">{after.proteinGrams}g</td>
+                      <td className="py-2.5 px-4 font-bold text-[#0E3E1E] font-mono">{format1(after.proteinGrams)}g</td>
                       <td className="py-2.5 px-4 text-[#527056]">₹{after.addonCostInr}</td>
                       <td className="py-2.5 px-4 text-[#2E7D32] font-bold">
-                        +{after.proteinGrams - before.proteinGrams}g
+                        +{format1(diff)}g
                       </td>
                     </tr>
                   );
@@ -295,11 +314,12 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                     <div className="flex items-center gap-1">
                       <input
                         type="number"
+                        step="0.1"
                         value={day.proteinGrams}
                         onChange={(e) =>
                           handleUpdateBeforeDay(idx, Number(e.target.value), day.notes || '')
                         }
-                        className="w-14 rounded-lg border border-[#CCE0CB] bg-white px-2 py-1 text-xs text-[#0E3E1E] text-right font-mono focus:outline-none"
+                        className="w-16 rounded-lg border border-[#CCE0CB] bg-white px-2 py-1 text-xs text-[#0E3E1E] text-right font-mono focus:outline-none"
                       />
                       <span className="text-[#527056]">g</span>
                     </div>
@@ -345,6 +365,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                       <div className="flex items-center gap-1">
                         <input
                           type="number"
+                          step="0.1"
                           value={day.proteinGrams}
                           onChange={(e) =>
                             handleUpdateAfterDay(
@@ -354,7 +375,7 @@ Verdict: Deficit resolved with budget college canteen add-ons.`;
                               day.notes || ''
                             )
                           }
-                          className="w-14 rounded-lg border border-[#CCE0CB] bg-white px-2 py-1 text-xs text-[#0E3E1E] font-bold text-right font-mono focus:outline-none"
+                          className="w-16 rounded-lg border border-[#CCE0CB] bg-white px-2 py-1 text-xs text-[#0E3E1E] font-bold text-right font-mono focus:outline-none"
                         />
                         <span className="text-[#527056]">g</span>
                       </div>

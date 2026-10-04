@@ -175,7 +175,7 @@ export const DayPlanView: React.FC<DayPlanViewProps> = ({
 
             <div className="flex items-baseline gap-3">
               <span className="text-4xl font-black text-[#0E3E1E] tracking-tight">
-                {dayPlan.totalNutrition.protein}g
+                {Math.round(dayPlan.totalNutrition.protein * 10) / 10}g
               </span>
               <span className="text-sm text-[#527056] font-semibold">
                 Protein ({assessment.percentage}% of daily goal)
@@ -185,11 +185,11 @@ export const DayPlanView: React.FC<DayPlanViewProps> = ({
             <div className="mt-2 text-xs">
               {assessment.deficit > 0 ? (
                 <span className="font-semibold text-[#B71C1C] bg-[#FFEBEE] px-2.5 py-1 rounded-md">
-                  -{assessment.deficit}g protein deficit to close today
+                  -{Math.round(assessment.deficit * 10) / 10}g protein deficit to close today
                 </span>
               ) : (
                 <span className="font-semibold text-[#1B5E20] bg-[#E8F5E9] px-2.5 py-1 rounded-md">
-                  Target reached for muscle protein synthesis
+                  Target met
                 </span>
               )}
             </div>
@@ -199,19 +199,19 @@ export const DayPlanView: React.FC<DayPlanViewProps> = ({
           <div className="flex items-center gap-6 text-sm">
             <div>
               <div className="text-[11px] font-bold text-[#527056] uppercase tracking-wider">Calories</div>
-              <div className="font-bold text-[#0E3E1E] mt-0.5">{dayPlan.totalNutrition.calories} kcal</div>
+              <div className="font-bold text-[#0E3E1E] mt-0.5">{Math.round(dayPlan.totalNutrition.calories)} kcal</div>
             </div>
             <div>
               <div className="text-[11px] font-bold text-[#527056] uppercase tracking-wider">Carbs</div>
-              <div className="font-bold text-[#0E3E1E] mt-0.5">{dayPlan.totalNutrition.carbs}g</div>
+              <div className="font-bold text-[#0E3E1E] mt-0.5">{Math.round(dayPlan.totalNutrition.carbs * 10) / 10}g</div>
             </div>
             <div>
               <div className="text-[11px] font-bold text-[#527056] uppercase tracking-wider">Fats</div>
-              <div className="font-bold text-[#0E3E1E] mt-0.5">{dayPlan.totalNutrition.fat}g</div>
+              <div className="font-bold text-[#0E3E1E] mt-0.5">{Math.round(dayPlan.totalNutrition.fat * 10) / 10}g</div>
             </div>
             <div>
               <div className="text-[11px] font-bold text-[#527056] uppercase tracking-wider">Fiber</div>
-              <div className="font-bold text-[#0E3E1E] mt-0.5">{dayPlan.totalNutrition.fiber || 0}g</div>
+              <div className="font-bold text-[#0E3E1E] mt-0.5">{Math.round((dayPlan.totalNutrition.fiber || 0) * 10) / 10}g</div>
             </div>
           </div>
         </div>
@@ -276,7 +276,7 @@ export const DayPlanView: React.FC<DayPlanViewProps> = ({
                   <div>
                     <h3 className="text-sm font-bold text-[#0E3E1E] capitalize">{meal.title}</h3>
                     <span className="text-xs text-[#527056] font-medium">
-                      {meal.totalNutrition.protein}g protein · {meal.totalNutrition.calories} kcal
+                      {Math.round(meal.totalNutrition.protein * 10) / 10}g protein · {Math.round(meal.totalNutrition.calories)} kcal
                     </span>
                   </div>
                 </div>
@@ -415,10 +415,10 @@ export const DayPlanView: React.FC<DayPlanViewProps> = ({
                         {/* Macros */}
                         <div className="text-right min-w-[70px]">
                           <span className="text-xs font-black text-[#0E3E1E]">
-                            {item.nutrition.protein}g P
+                            {Math.round(item.nutrition.protein * 10) / 10}g P
                           </span>
                           <div className="text-[10px] text-[#527056]">
-                            {item.nutrition.calories} kcal
+                            {Math.round(item.nutrition.calories)} kcal
                           </div>
                         </div>
 

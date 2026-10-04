@@ -94,10 +94,10 @@ export const WeeklyProteinOverview: React.FC<WeeklyProteinOverviewProps> = ({
       {/* Grid of Days with Daily Protein Intake */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5">
         {plans.map((plan, idx) => {
-          const protein = plan.totalNutrition.protein;
+          const protein = Math.round(plan.totalNutrition.protein * 10) / 10;
           const target = profile.dailyProteinTarget;
           const percentage = Math.round((protein / target) * 100);
-          const deficit = Math.max(0, target - protein);
+          const deficit = Math.max(0, Math.round((target - protein) * 10) / 10);
           const isSelected = activeDayIndex === idx;
 
           return (

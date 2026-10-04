@@ -126,11 +126,121 @@ CRITICAL EXTRACTION RULES:
     if (Array.isArray(parsedJson) && parsedJson.length > 0) {
       return parsedJson as ParsedMenuDayOutput[];
     }
-  } catch (err) {
-    console.error('Gemini parse menu error, falling back to local regex parser:', err);
+  } catch (err: any) {
+    const isQuota = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota') || err?.message?.includes('RESOURCE_EXHAUSTED');
+    if (isQuota) {
+      console.log('Gemini API free tier quota reached (429). Using deterministic hostel menu parser.');
+    } else {
+      console.log('Notice: using deterministic hostel menu parser fallback.');
+    }
   }
 
   return localFallbackMenuParser(params.text || '');
+}
+
+/**
+ * Intelligent deterministic rule-based gym-bro coach engine.
+ * Generates personalized advice when Gemini API key is missing or quota is reached.
+ */
+export function generateRuleBasedCoachAdvice(params: {
+  friendName: string;
+  weightKg: number;
+  dietPreference: string;
+  dailyProteinTarget: number;
+  currentMessProtein: number;
+  deficitProtein: number;
+  unverifiedFoods: string[];
+  mealsSummary: string;
+}) {
+  const isVeg = params.dietPreference === 'veg' || params.dietPreference === 'lacto_veg';
+  const isEggetarian = params.dietPreference === 'eggetarian';
+  const isNonVeg = params.dietPreference === 'non_veg';
+
+  // Dynamic add-ons list based on diet and gap
+  const recommendedAddons: {
+    name: string;
+    meal: 'breakfast' | 'lunch' | 'snacks' | 'dinner';
+    costInr: number;
+    proteinGrams: number;
+    tip: string;
+  }[] = [];
+
+  if (isNonVeg || isEggetarian) {
+    recommendedAddons.push({
+      name: '2 Boiled Eggs (Night Canteen / Tapri)',
+      meal: 'breakfast',
+      costInr: 14,
+      proteinGrams: 13,
+      tip: 'Get 2 whole eggs boiled with black pepper right after your morning mess breakfast.',
+    });
+  } else {
+    recommendedAddons.push({
+      name: 'Amul High Protein Lassi (200ml)',
+      meal: 'breakfast',
+      costInr: 25,
+      proteinGrams: 15,
+      tip: 'Zero-fat, grab from the campus Amul parlor or tuck-shop after breakfast.',
+    });
+  }
+
+  // Soya chunks is universally suitable for all diets
+  recommendedAddons.push({
+    name: 'Electric Kettle Soya Chunks (50g)',
+    meal: 'dinner',
+    costInr: 10,
+    proteinGrams: 26,
+    tip: 'Boil 50g dry chunks in your room kettle with salt for 5 mins, squeeze water, dump into mess dal.',
+  });
+
+  if (isNonVeg) {
+    recommendedAddons.push({
+      name: 'Extra Canteen Chicken Breast / Double Egg Curry',
+      meal: 'dinner',
+      costInr: 60,
+      proteinGrams: 28,
+      tip: 'Ask the hostel night canteen for an extra portion of plain boiled eggs or chicken curry.',
+    });
+  } else if (isEggetarian) {
+    recommendedAddons.push({
+      name: 'Double Egg Canteen Bhurji / Omelette',
+      meal: 'dinner',
+      costInr: 30,
+      proteinGrams: 14,
+      tip: 'Order from night canteen with minimal oil and have with your mess rotis.',
+    });
+  } else {
+    recommendedAddons.push({
+      name: 'Amul High Protein Buttermilk (200ml)',
+      meal: 'lunch',
+      costInr: 25,
+      proteinGrams: 15,
+      tip: 'Drink with lunch to aid digestion and add 15g whey/casein protein.',
+    });
+  }
+
+  recommendedAddons.push({
+    name: 'Roasted Chana Pouch (50g)',
+    meal: 'lunch',
+    costInr: 15,
+    proteinGrams: 10,
+    tip: 'Keep a pouch in your backpack for library study sessions between classes.',
+  });
+
+  const totalAdded = recommendedAddons.reduce((sum, a) => sum + a.proteinGrams, 0);
+
+  return {
+    headline: `Bhai ${params.friendName}, you're ${params.deficitProtein}g short of making gains today!`,
+    summary: `Your hostel mess menu gives you ${params.currentMessProtein}g out of your ${params.dailyProteinTarget}g target. Mess dal is ~90% water with barely 4g protein per katori, and the sabzis are heavy on carbs and cooking oil.`,
+    proteinAssessment: `At ${params.weightKg}kg, progressive overload requires at least ${params.dailyProteinTarget}g/day (2.0g/kg). A ${params.deficitProtein}g deficit means your muscles won't fully recover between gym sessions.`,
+    recommendedAddons,
+    gymBroTips: [
+      'Mess Dal Truth: 1 katori mess dal has only ~4g protein, not the 15g hostel lifters assume!',
+      'Soya Chunks Economy: Soya is 52g protein per 100g dry weight at just ₹20 per pack—your cheapest weapon.',
+      'Hydration: Drink at least 3-4 liters of water daily to support nitrogen clearance as you increase protein.',
+      `Target Met: Adding these simple canteen hacks adds +${totalAdded}g protein for under ₹75/day!`,
+    ],
+    mythBuster: 'Myth: "Bhai I had 2 bowls of dal and 4 rotis, I got 30g protein!" Reality: 2 watery dals (~8g) + 4 rotis (~11g) = ~19g total protein accompanied by ~90g carbohydrates.',
+  };
 }
 
 /**
@@ -162,42 +272,9 @@ export async function generateCoachAdviceWithGemini(params: {
 }> {
   const ai = getAiClient();
 
-  const fallbackAdvice = {
-    headline: `Yo ${params.friendName}, you're in a ${params.deficitProtein}g Protein Deficit!`,
-    summary: `Your hostel mess food is only giving you ${params.currentMessProtein}g out of your ${params.dailyProteinTarget}g target. Standard mess dal is mostly water, and the sabzi is heavy on oil and carbs.`,
-    proteinAssessment: `At ${params.weightKg}kg, you need at least ${params.dailyProteinTarget}g/day for progressive overload and muscle recovery. A ${params.deficitProtein}g gap means you're leaving gains on the table.`,
-    recommendedAddons: [
-      {
-        name: params.dietPreference === 'veg' ? 'Amul High Protein Lassi (200ml)' : '2 Boiled Eggs (Night Canteen)',
-        meal: 'breakfast' as const,
-        costInr: params.dietPreference === 'veg' ? 25 : 14,
-        proteinGrams: params.dietPreference === 'veg' ? 15 : 13,
-        tip: 'Grab this right after breakfast or morning workout.',
-      },
-      {
-        name: 'Electric Kettle Soya Chunks (50g)',
-        meal: 'dinner' as const,
-        costInr: 10,
-        proteinGrams: 26,
-        tip: 'Boil in your room kettle with a pinch of salt, squeeze water, dump into mess dal.',
-      },
-      {
-        name: 'Roasted Chana (50g pouch)',
-        meal: 'snacks' as const,
-        costInr: 15,
-        proteinGrams: 10,
-        tip: 'Keep a packet in your backpack for evening library study sessions.',
-      },
-    ],
-    gymBroTips: [
-      'Mess Dal Truth: 1 katori of mess dal is 90% water and only has ~4g protein, not the 15g your friends claim!',
-      'Soya Chunks are the #1 student budget hack: 52g protein per 100g dry weight at just ₹20!',
-      'Hydrate with at least 3-4 liters of water, especially if you are increasing protein in hostel heat.',
-    ],
-    mythBuster: 'Myth: "Bhai I had 2 bowls of dal and 4 rotis, I got 30g protein!" Reality: 2 watery dals (~8g) + 4 rotis (~11g) = 19g total with 90g of carbs. You need dedicated protein sources!',
-  };
-
-  if (!ai) return fallbackAdvice;
+  if (!ai) {
+    return generateRuleBasedCoachAdvice(params);
+  }
 
   const prompt = `You are "Mess Macro Coach", an experienced, sharp, empathetic, and encouraging Indian gym-bro who survived 4 years on engineering hostel mess food.
 Your friend ${params.friendName} lifts weights, weighs ${params.weightKg} kg, and has a diet preference of "${params.dietPreference}".
@@ -261,11 +338,16 @@ Write a punchy, hyper-relatable gym-bro breakdown.
     if (parsed.headline && parsed.recommendedAddons) {
       return parsed;
     }
-  } catch (err) {
-    console.error('Error generating advice with Gemini:', err);
+  } catch (err: any) {
+    const isQuota = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota') || err?.message?.includes('RESOURCE_EXHAUSTED');
+    if (isQuota) {
+      console.log('Gemini API free tier quota reached (429). Serving intelligent deterministic gym-bro coach advice.');
+    } else {
+      console.log('Notice: using intelligent gym-bro coach rule engine.');
+    }
   }
 
-  return fallbackAdvice;
+  return generateRuleBasedCoachAdvice(params);
 }
 
 /**
