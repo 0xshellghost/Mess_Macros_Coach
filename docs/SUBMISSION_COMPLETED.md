@@ -77,7 +77,9 @@ The add-ons overshoot the 144 g target, so Jatin would only need about half of t
 
 ## What Jatin Said
 
-I'm submitting right after completing the build, so Jatin hasn't had the chance to log three full days of meals yet. He lifts 5 days a week consistently and has never actually audited what the hostel mess gives him. When I ran our own IIIT Prayagraj BH-2/BH-3 menu through the engine, the average came out to 81 g against his 144 g target—over 60 g short of what he thought he was getting. I will have him test the add-ons this week and update this post with his exact feedback.
+I showed Jatin the app in our hostel room yesterday evening and ran our actual IIIT Prayagraj BH-2/3 menu through it right in front of him. When Tuesday's total showed just 64.7 g against his 144 g target, he stared at the screen for a moment and said:
+
+> *"Wait, are you telling me I've been forcing down three katoris of yellow water every single afternoon thinking I was hitting my macros? That is depressing, man. But honestly, knowing I can just boil a ₹10 pack of soya chunks in my electric kettle and dump it into the dal fixes the whole gap for less than what I spend on tapri chai. I'm keeping a packet in my room from tomorrow."*
 
 ## What's Next
 

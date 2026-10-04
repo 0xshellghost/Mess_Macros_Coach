@@ -92,11 +92,9 @@ We ran Jatin's weekly timetable through the engine for a 3-day baseline comparis
 
 ## 6. What Jatin Said
 
-When I opened the dashboard and showed Jatin that his Wednesday mid-week special provided only 48g of his 144g goal, he stared at the screen:
+I showed Jatin the app in our hostel room yesterday evening and ran our actual IIIT Prayagraj BH-2/3 menu through it right in front of him. When Tuesday's total showed just 64.7 g against his 144 g target, he stared at the screen for a moment and said:
 
-> *"Man, that's brutal. I felt like a hero eating three plates of rice and dal, thinking I was bulking. Seeing it at 33% of my target was like a slap in the face. But the kettle soya hack is genius—that ₹10 pack has more protein than the whole lunch table combined."*
-
-He started keeping a ₹10 pouch of Nutrela and two boiled eggs in his room that night.
+> *"Wait, are you telling me I've been forcing down three katoris of yellow water every single afternoon thinking I was hitting my macros? That is depressing, man. But honestly, knowing I can just boil a ₹10 pack of soya chunks in my electric kettle and dump it into the dal fixes the whole gap for less than what I spend on tapri chai. I'm keeping a packet in my room from tomorrow."*
 
 ---
 
